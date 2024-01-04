@@ -30,6 +30,8 @@ app.get('/:inscriptionId', async(req, res) => {
     const height = 400;
 
     const browser = await puppeteer.launch({
+        timeout: 0,
+        headless: true,
         args: [`--window-size=${width},${height}`, '--no-sandbox'],
         defaultViewport: {
           width,
@@ -39,22 +41,21 @@ app.get('/:inscriptionId', async(req, res) => {
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle2' });
     const screenshotBuffer = await page.screenshot({
-    omitBackground: true,
+        omitBackground: true,
     });
     await browser.close();
     const onlineImage = await Jimp.read(screenshotBuffer);
     const localImage = await Jimp.read(localImageBuffer);
 
     if (onlineImage.getWidth() < 400 || onlineImage.getHeight() < 400) {
-    onlineImage.resize(450, 450, Jimp.RESIZE_INSIDE);
-
-    onlineImage.pixelate(8);
+        onlineImage.resize(450, 450, Jimp.RESIZE_INSIDE);
+        onlineImage.pixelate(8);
     }
 
     localImage.composite(
-    onlineImage,
-    (localImage.getWidth() - onlineImage.getWidth()) / 2,
-    (localImage.getHeight() - onlineImage.getHeight()) / 2 - 10,
+        onlineImage,
+        (localImage.getWidth() - onlineImage.getWidth()) / 2,
+        (localImage.getHeight() - onlineImage.getHeight()) / 2 - 10,
     );
 
     const combinedImageBuffer = await localImage.getBufferAsync(MIME_PNG);
